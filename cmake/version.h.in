@@ -1,0 +1,8 @@
+#ifndef VERSION_H
+#define VERSION_H
+
+#define FIRMWARE_VERSION "@VERSION@"
+#define BUILD_TIMESTAMP "@BUILD_TIME@"
+#define GIT_COMMIT "@GIT_COMMIT_HASH@"
+
+#endif // VERSION_H

@@ -12,7 +12,7 @@ function(add_grpc_gencode_target_for_proto_path)
   get_property(PROTOC_NAMESPACE GLOBAL PROPERTY PROTOC_NAMESPACE_PROPERTY)
 
   if(NOT PROTOC_NAMESPACE)
-    set(CUR_PROTOC_NAMESPACE "protobuf")
+    set(CUR_PROTOC_NAMESPACE "gRPC")
   else()
     set(CUR_PROTOC_NAMESPACE ${PROTOC_NAMESPACE})
   endif()
@@ -37,25 +37,20 @@ function(add_grpc_gencode_target_for_proto_path)
 
     # Check if gRPC::grpc_cpp_plugin target exists
     if(NOT TARGET gRPC::grpc_cpp_plugin)
-      # Fallback to manually specifying the path to grpc_cpp_plugin
-      set(GRPC_CPP_PLUGIN_PATH "${FETCHCONTENT_BASE_DIR}/grpc-build/grpc_cpp_plugin")
-      if(NOT EXISTS ${GRPC_CPP_PLUGIN_PATH})
-        message(FATAL_ERROR "grpc_cpp_plugin not found at ${GRPC_CPP_PLUGIN_PATH}. Ensure gRPC is built correctly.")
-      endif()
-      set(GRPC_CPP_PLUGIN ${GRPC_CPP_PLUGIN_PATH})
+      message(STATUS "not gRPC::grpc_cpp_plugin target")
     else()
       set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
     endif()
 
     add_custom_command(
       OUTPUT ${GEN_SRC} ${GEN_HDR} ${GRPC_SRC} ${GRPC_HDR}
-      COMMAND ${CUR_PROTOC_NAMESPACE}::protoc ARGS ${ARG_OPTIONS} 
+      COMMAND protobuf::protoc ARGS ${ARG_OPTIONS} 
               --proto_path=${ARG_PROTO_PATH}
               --cpp_out=${ARG_GENCODE_PATH}
               --grpc_out=${ARG_GENCODE_PATH}
               --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
               ${PROTO_FILE}
-      DEPENDS ${PROTO_FILE} ${CUR_PROTOC_NAMESPACE}::protoc
+      DEPENDS ${PROTO_FILE} protobuf::protoc
       COMMENT "Generating gRPC code for ${PROTO_FILE}"
       VERBATIM)
   endforeach()

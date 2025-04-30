@@ -3,7 +3,7 @@
 
 set_namespace()
 
-if(BUILD_WITH_GRPC)
+if(USE_LOCAL_GRPC_COMPILER)
     add_subdirectory(grpc)
 endif()
 

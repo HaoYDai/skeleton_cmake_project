@@ -14,9 +14,24 @@ set(CUR_TARGET_ALIAS_NAME ${CUR_SUPERIOR_NAMESPACE}::${CUR_DIR})
 
 # Add target
 add_protobuf_gencode_target_for_proto_path(
-  TARGET_NAME ${CUR_TARGET_NAME}_pb_gencode
+  TARGET_NAME ${CUR_TARGET_NAME}_gencode
   PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}
   GENCODE_PATH ${CMAKE_CURRENT_BINARY_DIR})
-add_library(${CUR_TARGET_ALIAS_NAME}_pb_gencode ALIAS ${CUR_TARGET_NAME}_pb_gencode)
+add_library(${CUR_TARGET_ALIAS_NAME}_gencode ALIAS ${CUR_TARGET_NAME}_gencode)
 
+# Set installation
+if(BUILD_INSTALL)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DESTINATION "share"
+    FILES_MATCHING
+    PATTERN "*.proto")
 
+  set_property(TARGET ${CUR_TARGET_NAME}_gencode PROPERTY EXPORT_NAME ${CUR_TARGET_ALIAS_NAME}_gencode)
+  install(
+    TARGETS ${CUR_TARGET_NAME}_gencode
+    EXPORT ${INSTALL_CONFIG_NAME}
+    ARCHIVE DESTINATION lib
+            FILE_SET HEADERS
+            DESTINATION include/${CUR_TARGET_NAME}_gencode)
+endif()

@@ -1,0 +1,28 @@
+// Copyright (c) 2025, DarYue Inc.
+// All rights reserved.
+
+syntax = "proto3";
+
+service CmdControl {
+    rpc Cmd(CmdRequest) returns (CmdResponse) {}
+}
+
+message CmdRequest {
+    enum Cmd {
+        UNKNOWN = 0;
+        REBOOT = 1;
+        SHUTDOWN = 2;
+    }
+    Cmd cmd = 1;
+    string source_id = 2;
+}
+
+message CmdResponse {
+    enum Status {
+        UNKNOWN = 0;
+        SUCCESS = 1;
+        FAIL = 2;
+    }
+    Status status = 1;
+    string node_id = 2;
+}

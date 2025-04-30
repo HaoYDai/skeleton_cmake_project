@@ -4,3 +4,7 @@
 set_root_namespace("${PRJ_NAME}")
 
 add_subdirectory(protocols)
+
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()

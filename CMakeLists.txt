@@ -18,10 +18,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
 
 # Some option
-option(BUILD_WITH_GRPC "Build gRPC" ON)
+option(BUILD_WITH_PROTOBUF "Build with protobuf" ON)
 
-cmake_dependent_option(BUILD_WITH_PROTOBUF "Build with protobuf" OFF "BUILD_WITH_GRPC" ON)
+option(BUILD_INSTALL "Enable installation" ON)
+option(BUILD_EXAMPLES "Build examples" ON)
 
+option(USE_LOCAL_GRPC_COMPILER "use local protoc compiler." ON)
 option(USE_LOCAL_PROTOC_COMPILER "use local protoc compiler." OFF)
 option(USE_PROTOC_PYTHON "use protoc python." OFF)
 
@@ -35,16 +37,50 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/_deps)
+set(INSTALL_CONFIG_NAME ${PROJECT_NAME}-config)
+
+# Master project configuration
+if(NOT DEFINED MASTER_PROJECT)
+  set(MASTER_PROJECT OFF)
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(MASTER_PROJECT ON)
+  endif()
+endif()
+
+if(MASTER_PROJECT)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/_deps)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
+
+  set(BUILD_SHARED_LIBS OFF)
+  set(CMAKE_C_VISIBILITY_PRESET hidden)
+  set(CMAKE_C_VISIBILITY_INLINES_HIDDEN ON)
+  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+  set(CMAKE_CXX_VISIBILITY_INLINES_HIDDEN ON)
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    if(BUILD_TESTS)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
+    endif()
+  endif()
+
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  add_compile_options(/utf-8 /wd4819)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+endif()
 
 # Include cmake module
 include(NamespaceTool)
-
-# include(GetProtobuf)
-if(BUILD_WITH_GRPC)
-    include(GetGRPC)
-    include(GRPCGenCode)
-endif()
 
 if(BUILD_WITH_PROTOBUF)
     include(GetProtobuf)
@@ -71,9 +107,25 @@ if(BUILD_WITH_PROTOBUF)
     if(USE_PROTOC_PYTHON)
         find_package(Python3 REQUIRED)
     endif()
+
+  if(USE_LOCAL_GRPC_COMPILER)
+      include(GetGRPC)
+      include(GRPCGenCode)
+  endif()
 endif()
 
 add_subdirectory(src)
+
+if(BUILD_INSTALL)
+  # Install
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+    DESTINATION ./
+    FILES_MATCHING
+    PATTERN "*.cmake")
+
+  install(EXPORT ${INSTALL_CONFIG_NAME} DESTINATION lib/cmake/${PROJECT_NAME})
+endif()
 
 # Print all options
 message("\n  ${PRJ_NAME} CMake Options/Info:")
@@ -81,9 +133,11 @@ message("\n  ${PRJ_NAME} CMake Options/Info:")
 list(
   APPEND
   ${PRJ_NAME}_vars
-  BUILD_WITH_GRPC
   BUILD_WITH_PROTOBUF
+  BUILD_INSTALL
+  BUILD_EXAMPLES
   USE_LOCAL_PROTOC_COMPILER
+  USE_LOCAL_GRPC_COMPILER
   USE_PROTOC_PYTHON
 )
 

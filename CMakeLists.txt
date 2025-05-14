@@ -23,8 +23,7 @@ option(BUILD_WITH_PROTOBUF "Build with protobuf" ON)
 option(BUILD_INSTALL "Enable installation" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
 
-option(USE_LOCAL_GRPC_COMPILER "use local protoc compiler." ON)
-option(USE_LOCAL_PROTOC_COMPILER "use local protoc compiler." OFF)
+option(BUILD_WITH_GRPC "Build with gRPC" ON)
 option(USE_PROTOC_PYTHON "use protoc python." OFF)
 
 # Some necessary settings
@@ -83,35 +82,15 @@ endif()
 include(NamespaceTool)
 
 if(BUILD_WITH_PROTOBUF)
-    include(GetProtobuf)
     include(ProtobufGenCode)
-
-    if(USE_LOCAL_PROTOC_COMPILER)
-        if(NOT Protobuf_PROTOC_EXECUTABLE)
-            find_program(PROTOC_EXECUTABLE protoc)
-            if(NOT PROTOC_EXECUTABLE)
-                message(FATAL_ERROR "USE_LOCAL_PROTOC_COMPILER is ON, but can not find protoc compiler, " #
-                            "please install protoc and make it available in your PATH, or set Protobuf_PROTOC_EXECUTABLE to protoc path")
-            endif()
-            message(STATUS "Found local protoc compiler: ${PROTOC_EXECUTABLE}")
-            set(Protobuf_PROTOC_EXECUTABLE
-                ${PROTOC_EXECUTABLE}
-                CACHE STRING "Path to local protoc compiler.")
-        endif()
-
-        add_executable(${PRJ_NAME}::protoc IMPORTED GLOBAL)
-        set_target_properties(${PRJ_NAME}::protoc PROPERTIES IMPORTED_LOCATION ${Protobuf_PROTOC_EXECUTABLE})
-        set_property(GLOBAL PROPERTY PROTOC_NAMESPACE_PROPERTY "${PRJ_NAME}")
-    endif()
 
     if(USE_PROTOC_PYTHON)
         find_package(Python3 REQUIRED)
     endif()
+endif()
 
-  if(USE_LOCAL_GRPC_COMPILER)
-      include(GetGRPC)
-      include(GRPCGenCode)
-  endif()
+if(BUILD_WITH_GRPC)
+  include(GRPCGenCode)
 endif()
 
 add_subdirectory(src)
@@ -134,10 +113,9 @@ list(
   APPEND
   ${PRJ_NAME}_vars
   BUILD_WITH_PROTOBUF
+  BUILD_WITH_GRPC
   BUILD_INSTALL
   BUILD_EXAMPLES
-  USE_LOCAL_PROTOC_COMPILER
-  USE_LOCAL_GRPC_COMPILER
   USE_PROTOC_PYTHON
 )
 

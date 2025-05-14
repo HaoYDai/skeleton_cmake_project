@@ -1,3 +1,6 @@
+# Copyright (c) 2025, DarYue Inc.
+# All rights reserved.
+
 # Get the current date/time
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 

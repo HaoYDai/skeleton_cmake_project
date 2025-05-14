@@ -1,5 +1,6 @@
 build/
-_deps/
+.cache/
+CMakeUserPresets.json
 .DS_Store
 
 # Document

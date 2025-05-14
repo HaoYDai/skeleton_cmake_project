@@ -32,17 +32,11 @@ clean_docker: stop_docker rm_docker
 	docker rmi $(IMAGE_NAME):$(TAG) || true
 
 build_arm64:
-	conan install . -pr=./arm64.profile -b=missing
-	bash -c "source build/armv8/Release/generators/conanbuild.sh"
-	cmake --preset conan-release
-	cmake --build --preset conan-release
-	bash -c "source build/armv8/Release/generators/deactivate_conanbuild.sh"
+	conan install . -pr=./profile/arm64.profile -b=missing
+	conan build . -pr=./profile/arm64.profile -b=missing
 	rm CMakeUserPresets.json
 
 build_x86_64:
-	conan install . -b=missing
-	bash -c "source build/x86_64/Release/generators/conanbuild.sh"
-	cmake --preset conan-release
-	cmake --build --preset conan-release
-	bash -c "source build/x86_64/Release/generators/deactivate_conanbuild.sh"
+	conan install . -pr=default -b=missing
+	conan build . -pr=default -b=missing
 	rm CMakeUserPresets.json
